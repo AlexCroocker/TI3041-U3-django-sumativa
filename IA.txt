@@ -1,0 +1,24 @@
+Declaración de uso de IA
+
+Se utilizó IA como apoyo para implementar y documentar los Datos del Sistema y
+el catálogo público de cómics en Django.
+
+Datos del Sistema:
+- Editorial: registra al menos su nombre, que debe ser único.
+- Cómic: registra título, editorial, imagen de portada, precio en pesos
+  chilenos, número de tomo, si es tapa dura, stock de ejemplares y si está
+  disponible para la venta.
+- Reserva: pertenece a un cómic e indica nombre, correo y RUT de quien reserva,
+  cantidad de ejemplares, fecha y hora, y un código único que la identifica.
+- Al eliminar una editorial, se eliminan sus cómics y las reservas asociadas.
+  Al eliminar un cómic, se eliminan sus reservas.
+- Los registros tienen representaciones legibles en el panel de administración.
+
+Catálogo público:
+- La página de inicio muestra los cómics disponibles con portada, título,
+  editorial y precio; los no disponibles no aparecen.
+- Permite buscar por título, filtrar por editorial y combinar ambos filtros.
+- Cada cómic disponible tiene una página de detalle con su portada y datos.
+  Los cómics inexistentes o no disponibles responden con error 404.
+- Las páginas comparten una plantilla base con menú y los precios se presentan
+  en pesos chilenos (CLP).

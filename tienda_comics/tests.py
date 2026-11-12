@@ -57,3 +57,83 @@ class CatalogoYReservasTests(TestCase):
 
         with self.assertRaises(ValidationError):
             reserva_sin_ejemplares.full_clean()
+
+
+class CatalogoPublicoTests(TestCase):
+    def setUp(self):
+        self.editorial = Editorial.objects.create(nombre="Editorial principal")
+        self.otra_editorial = Editorial.objects.create(nombre="Otra editorial")
+        self.comic = Comic.objects.create(
+            titulo="Aventura espacial",
+            editorial=self.editorial,
+            portada="portadas/aventura-espacial.jpg",
+            precio=12500,
+            numero_tomo=2,
+            tapa_dura=True,
+            stock=4,
+        )
+        self.otro_comic = Comic.objects.create(
+            titulo="Aventura medieval",
+            editorial=self.otra_editorial,
+            portada="portadas/aventura-medieval.jpg",
+            precio=8000,
+            numero_tomo=1,
+            stock=2,
+        )
+        self.comic_no_disponible = Comic.objects.create(
+            titulo="Edición agotada",
+            editorial=self.editorial,
+            portada="portadas/agotada.jpg",
+            precio=3000,
+            numero_tomo=1,
+            stock=0,
+            disponible_venta=False,
+        )
+
+    def test_inicio_lista_solo_disponibles_y_formatea_precios_en_clp(self):
+        response = self.client.get("/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Aventura espacial")
+        self.assertContains(response, "Editorial principal")
+        self.assertContains(response, "$12.500 CLP")
+        self.assertNotContains(response, "Edición agotada")
+        self.assertContains(response, 'aria-label="Menú principal"')
+
+    def test_busqueda_y_editorial_se_pueden_combinar(self):
+        response = self.client.get(
+            "/",
+            {"q": "Aventura", "editorial": self.editorial.pk},
+        )
+
+        self.assertContains(response, "Aventura espacial")
+        self.assertNotContains(response, "Aventura medieval")
+        self.assertNotContains(response, "Edición agotada")
+
+    def test_filtro_por_editorial_muestra_solo_sus_comics(self):
+        response = self.client.get("/", {"editorial": self.otra_editorial.pk})
+
+        self.assertContains(response, "Aventura medieval")
+        self.assertNotContains(response, "Aventura espacial")
+
+    def test_detalle_muestra_datos_del_comic_disponible(self):
+        response = self.client.get(f"/comics/{self.comic.pk}/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Editorial principal")
+        self.assertContains(response, "Número de tomo")
+        self.assertContains(response, "$12.500 CLP")
+        self.assertContains(response, "Tapa dura")
+        self.assertContains(response, "Stock")
+
+    def test_detalle_de_comic_inexistente_o_no_disponible_responde_404(self):
+        for pk in (self.comic_no_disponible.pk, self.comic.pk + 100):
+            with self.subTest(pk=pk):
+                response = self.client.get(f"/comics/{pk}/")
+                self.assertEqual(response.status_code, 404)
+
+    def test_editorial_invalida_no_muestra_todos_los_comics(self):
+        response = self.client.get("/", {"editorial": "no-es-un-id"})
+
+        self.assertNotContains(response, "Aventura espacial")
+        self.assertNotContains(response, "Aventura medieval")
