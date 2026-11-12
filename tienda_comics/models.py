@@ -6,7 +6,7 @@ from django.utils import timezone
 
 
 class Editorial(models.Model):
-    nombre = models.CharField("nombre", max_length=150, unique=True)
+    nombre = models.CharField(max_length=100, unique=True)
 
     class Meta:
         verbose_name = "editorial"
@@ -18,14 +18,14 @@ class Editorial(models.Model):
 
 
 class Comic(models.Model):
-    titulo = models.CharField("título", max_length=200)
+    titulo = models.CharField(max_length=100)
     editorial = models.ForeignKey(
         Editorial,
         on_delete=models.CASCADE,
         related_name="comics",
         verbose_name="editorial",
     )
-    portada = models.ImageField("portada", upload_to="portadas/")
+    portada = models.ImageField(upload_to="portadas/")
     precio = models.DecimalField(
         "precio (CLP)",
         max_digits=10,
@@ -56,15 +56,13 @@ class Reserva(models.Model):
         related_name="reservas",
         verbose_name="cómic",
     )
-    nombre = models.CharField("nombre", max_length=150)
-    correo = models.EmailField("correo electrónico")
-    rut = models.CharField("RUT", max_length=12)
-    cantidad = models.PositiveIntegerField(
-        "cantidad de ejemplares",
-        validators=[MinValueValidator(1)],
+    nombre = models.CharField(max_length=100)
+    correo = models.EmailField()
+    rut = models.CharField(max_length=12)
+    cantidad = models.PositiveIntegerField(validators=[MinValueValidator(1)],
     )
-    fecha_hora = models.DateTimeField("fecha y hora de reserva", default=timezone.now)
-    codigo = models.UUIDField("código", default=uuid.uuid4, unique=True, editable=False)
+    fecha_hora = models.DateTimeField(default=timezone.now)
+    codigo = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
 
     class Meta:
         verbose_name = "reserva"
