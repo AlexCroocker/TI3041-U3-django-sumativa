@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Catálogo de cómics{% endblock %}</title>
+    <style>
+        body { margin: 0; color: #202124; font-family: system-ui, sans-serif; }
+        header { padding: 1rem 2rem; background: #202124; color: white; }
+        nav a { margin-right: 1rem; color: inherit; }
+        main { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; }
+        .comics { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem; }
+        .comic-card { padding: 1rem; border: 1px solid #ddd; border-radius: .5rem; }
+        .comic-card img { width: 100%; height: 280px; object-fit: contain; }
+        .comic-detail { display: grid; grid-template-columns: minmax(180px, 1fr) 2fr; gap: 2rem; }
+        .comic-detail img { max-width: 100%; max-height: 600px; object-fit: contain; }
+        @media (max-width: 600px) {
+            header { padding: 1rem; }
+            .comic-detail { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav aria-label="Menú principal">
+            <a href="{% url 'catalogo' %}">Catálogo</a>
+        </nav>
+    </header>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

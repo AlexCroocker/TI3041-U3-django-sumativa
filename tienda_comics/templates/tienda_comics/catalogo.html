@@ -1,0 +1,43 @@
+{% extends "tienda_comics/base.html" %}
+{% load catalogo_extras %}
+
+{% block title %}Catálogo de cómics{% endblock %}
+
+{% block content %}
+    <h1>Catálogo de cómics</h1>
+
+    <form method="get">
+        <label for="q">Buscar por título</label>
+        <input id="q" name="q" type="search" value="{{ busqueda }}">
+
+        <label for="editorial">Editorial</label>
+        <select id="editorial" name="editorial">
+            <option value="">Todas las editoriales</option>
+            {% for editorial in editoriales %}
+                <option value="{{ editorial.pk }}"{% if editorial_seleccionada == editorial.pk|stringformat:"s" %} selected{% endif %}>
+                    {{ editorial.nombre }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">Buscar</button>
+        <a href="{% url 'catalogo' %}">Limpiar filtros</a>
+    </form>
+
+    {% if comics %}
+        <section class="comics" aria-label="Cómics disponibles">
+            {% for comic in comics %}
+                <article class="comic-card">
+                    <a href="{% url 'detalle_comic' comic.pk %}">
+                        <img src="{{ comic.portada.url }}" alt="Portada de {{ comic.titulo }}">
+                        <h2>{{ comic.titulo }}</h2>
+                    </a>
+                    <p>Editorial: {{ comic.editorial.nombre }}</p>
+                    <p>Precio: {{ comic.precio|clp }} CLP</p>
+                </article>
+            {% endfor %}
+        </section>
+    {% else %}
+        <p>No se encontraron cómics disponibles con esos filtros.</p>
+    {% endif %}
+{% endblock %}

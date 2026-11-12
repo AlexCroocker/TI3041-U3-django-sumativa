@@ -1,0 +1,28 @@
+{% extends "tienda_comics/base.html" %}
+{% load catalogo_extras %}
+
+{% block title %}{{ comic.titulo }} | Catálogo de cómics{% endblock %}
+
+{% block content %}
+    <p><a href="{% url 'catalogo' %}">Volver al catálogo</a></p>
+    <article class="comic-detail">
+        <img src="{{ comic.portada.url }}" alt="Portada de {{ comic.titulo }}">
+        <div>
+            <h1>{{ comic.titulo }}</h1>
+            <dl>
+                <dt>Editorial</dt>
+                <dd>{{ comic.editorial.nombre }}</dd>
+                <dt>Número de tomo</dt>
+                <dd>{{ comic.numero_tomo }}</dd>
+                <dt>Precio</dt>
+                <dd>{{ comic.precio|clp }} CLP</dd>
+                <dt>Tapa dura</dt>
+                <dd>{% if comic.tapa_dura %}Sí{% else %}No{% endif %}</dd>
+                <dt>Stock</dt>
+                <dd>{{ comic.stock }}</dd>
+                <dt>Disponible para la venta</dt>
+                <dd>{% if comic.disponible_venta %}Sí{% else %}No{% endif %}</dd>
+            </dl>
+        </div>
+    </article>
+{% endblock %}
