@@ -1,6 +1,8 @@
+from django.contrib import admin
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
+from .admin import ComicAdmin, ReservaAdmin
 from .models import Comic, Editorial, Reserva
 
 
@@ -57,6 +59,23 @@ class CatalogoYReservasTests(TestCase):
 
         with self.assertRaises(ValidationError):
             reserva_sin_ejemplares.full_clean()
+
+    def test_admin_formatea_precio_en_pesos_chilenos(self):
+        comic_admin = ComicAdmin(Comic, admin.site)
+
+        self.assertEqual(comic_admin.precio_formateado(self.comic), "$5.000")
+
+    def test_admin_agrega_puntos_al_rut_sin_puntos(self):
+        reserva_admin = ReservaAdmin(Reserva, admin.site)
+        ejemplos = (
+            ("2188945-1", "2.188.945-1"),
+            ("21889451-1", "21.889.451-1"),
+        )
+
+        for rut, rut_esperado in ejemplos:
+            with self.subTest(rut=rut):
+                self.reserva.rut = rut
+                self.assertEqual(reserva_admin.rut_formateado(self.reserva), rut_esperado)
 
 
 class CatalogoPublicoTests(TestCase):

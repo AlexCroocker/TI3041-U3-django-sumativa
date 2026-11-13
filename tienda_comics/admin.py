@@ -14,17 +14,45 @@ class ComicAdmin(admin.ModelAdmin):
         "titulo",
         "numero_tomo",
         "editorial",
-        "precio",
+        "precio_formateado",
         "stock",
+        "tapa_dura",
         "disponible_venta",
     )
-    list_filter = ("editorial", "tapa_dura", "disponible_venta")
+    list_filter = ("editorial", "tapa_dura")
     search_fields = ("titulo", "editorial__nombre")
+
+    @admin.display(description="Precio")
+    def precio_formateado(self, obj):
+        return f"${obj.precio:,.0f}".replace(",", ".")
 
 
 @admin.register(Reserva)
 class ReservaAdmin(admin.ModelAdmin):
-    list_display = ("codigo", "comic", "nombre", "correo", "rut", "cantidad", "fecha_hora")
-    list_filter = ("fecha_hora",)
+    list_display = (
+        "codigo",
+        "comic",
+        "nombre",
+        "correo",
+        "rut_formateado",
+        "cantidad",
+        "fecha_hora",
+    )
+    list_filter = ("comic",)
     search_fields = ("codigo", "comic__titulo", "nombre", "correo", "rut")
     readonly_fields = ("codigo",)
+
+    @admin.display(description="RUT")
+    def rut_formateado(self, obj):
+        numero, separador, digito_verificador = obj.rut.rpartition("-")
+        numero = numero.replace(".", "")
+        if (
+            not separador
+            or not numero.isdecimal()
+            or len(digito_verificador) != 1
+            or not (digito_verificador.isdecimal() or digito_verificador.lower() == "k")
+        ):
+            return obj.rut
+
+        numero_formateado = f"{int(numero):,}".replace(",", ".")
+        return f"{numero_formateado}-{digito_verificador}"
