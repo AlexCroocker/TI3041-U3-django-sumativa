@@ -1,43 +1,85 @@
 {% extends "tienda_comics/base.html" %}
 {% load catalogo_extras %}
 
-{% block title %}Catálogo de cómics{% endblock %}
+{% block title %}Catálogo de cómics | Tienda de Cómics{% endblock %}
 
 {% block content %}
-    <h1>Catálogo de cómics</h1>
+    <section class="catalog-hero">
+        <p class="eyebrow">Colección para fans</p>
+        <h1>Encuentra tu próxima historia</h1>
+        <p>Explora aventuras, universos y personajes. Usa los filtros para encontrar tu próximo cómic favorito.</p>
+    </section>
 
-    <form method="get">
-        <label for="q">Buscar por título</label>
-        <input id="q" name="q" type="search" value="{{ busqueda }}">
+    <form class="search-panel" method="get" role="search">
+        <div class="field">
+            <label for="q">Buscar por título</label>
+            <div class="input-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="11" cy="11" r="7"></circle>
+                    <path d="m20 20-4-4"></path>
+                </svg>
+                <input id="q" name="q" type="search" value="{{ busqueda }}" placeholder="Ej. Spider-Man, Batman...">
+            </div>
+        </div>
 
-        <label for="editorial">Editorial</label>
-        <select id="editorial" name="editorial">
-            <option value="">Todas las editoriales</option>
-            {% for editorial in editoriales %}
-                <option value="{{ editorial.pk }}"{% if editorial_seleccionada == editorial.pk|stringformat:"s" %} selected{% endif %}>
-                    {{ editorial.nombre }}
-                </option>
-            {% endfor %}
-        </select>
+        <div class="field">
+            <label for="editorial">Filtrar por editorial</label>
+            <select id="editorial" name="editorial">
+                <option value="">Todas las editoriales</option>
+                {% for editorial in editoriales %}
+                    <option value="{{ editorial.pk }}"{% if editorial_seleccionada == editorial.pk|stringformat:"s" %} selected{% endif %}>
+                        {{ editorial.nombre }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
 
-        <button type="submit">Buscar</button>
-        <a href="{% url 'catalogo' %}">Limpiar filtros</a>
+        <button class="button button-primary" type="submit">
+            <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="11" cy="11" r="7"></circle>
+                <path d="m20 20-4-4"></path>
+            </svg>
+            Buscar cómics
+        </button>
+        <a class="button button-secondary" href="{% url 'catalogo' %}">Limpiar</a>
     </form>
 
     {% if comics %}
-        <section class="comics" aria-label="Cómics disponibles">
+        <div class="section-heading">
+            <h2>Explora el catálogo</h2>
+            <p>Historias disponibles para ti</p>
+        </div>
+        <section class="comics-grid" aria-label="Cómics disponibles">
             {% for comic in comics %}
                 <article class="comic-card">
-                    <a href="{% url 'detalle_comic' comic.pk %}">
-                        <img src="{{ comic.portada.url }}" alt="Portada de {{ comic.titulo }}">
+                    <div class="comic-cover">
+                        <img src="{{ comic.portada.url }}" alt="Portada de {{ comic.titulo }}" loading="lazy">
+                        <span class="badge badge-floating">{{ comic.editorial.nombre }}</span>
+                        <span class="badge badge-available">Disponible</span>
+                    </div>
+                    <div class="comic-card-body">
+                        <p class="comic-publisher">{{ comic.editorial.nombre }}</p>
                         <h2>{{ comic.titulo }}</h2>
-                    </a>
-                    <p>Editorial: {{ comic.editorial.nombre }}</p>
-                    <p>Precio: {{ comic.precio|clp }} CLP</p>
+                        <p class="card-price">
+                            <strong>{{ comic.precio|clp }}</strong>
+                            <span>CLP</span>
+                        </p>
+                        <a class="button card-action" href="{% url 'detalle_comic' comic.pk %}">
+                            Ver detalle
+                            <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path d="M5 12h14"></path>
+                                <path d="m12 5 7 7-7 7"></path>
+                            </svg>
+                        </a>
+                    </div>
                 </article>
             {% endfor %}
         </section>
     {% else %}
-        <p>No se encontraron cómics disponibles con esos filtros.</p>
+        <section class="empty-state" aria-live="polite">
+            <h2>No encontramos ese cómic</h2>
+            <p>Prueba con otro título o selecciona una editorial diferente.</p>
+            <a class="button button-secondary" href="{% url 'catalogo' %}">Ver todo el catálogo</a>
+        </section>
     {% endif %}
 {% endblock %}

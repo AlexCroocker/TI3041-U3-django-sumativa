@@ -65,6 +65,19 @@ class CatalogoYReservasTests(TestCase):
 
         self.assertEqual(comic_admin.precio_formateado(self.comic), "$5.000")
 
+    def test_admin_indica_si_el_comic_tiene_reservas(self):
+        comic_admin = ComicAdmin(Comic, admin.site)
+        comic_sin_reservas = Comic.objects.create(
+            titulo="Sin reservas",
+            editorial=self.editorial,
+            portada="portadas/sin-reservas.jpg",
+            precio=3000,
+            numero_tomo=2,
+        )
+
+        self.assertTrue(comic_admin.tiene_reservas(self.comic))
+        self.assertFalse(comic_admin.tiene_reservas(comic_sin_reservas))
+
     def test_admin_agrega_puntos_al_rut_sin_puntos(self):
         reserva_admin = ReservaAdmin(Reserva, admin.site)
         ejemplos = (
@@ -115,7 +128,8 @@ class CatalogoPublicoTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Aventura espacial")
         self.assertContains(response, "Editorial principal")
-        self.assertContains(response, "$12.500 CLP")
+        self.assertContains(response, "$12.500")
+        self.assertContains(response, "CLP")
         self.assertNotContains(response, "Edición agotada")
         self.assertContains(response, 'aria-label="Menú principal"')
 
@@ -141,7 +155,8 @@ class CatalogoPublicoTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Editorial principal")
         self.assertContains(response, "Número de tomo")
-        self.assertContains(response, "$12.500 CLP")
+        self.assertContains(response, "$12.500")
+        self.assertContains(response, "CLP")
         self.assertContains(response, "Tapa dura")
         self.assertContains(response, "Stock")
 

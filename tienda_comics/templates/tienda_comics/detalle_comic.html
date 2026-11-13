@@ -1,28 +1,50 @@
 {% extends "tienda_comics/base.html" %}
 {% load catalogo_extras %}
 
-{% block title %}{{ comic.titulo }} | Catálogo de cómics{% endblock %}
+{% block title %}{{ comic.titulo }} | Tienda de Cómics{% endblock %}
 
 {% block content %}
-    <p><a href="{% url 'catalogo' %}">Volver al catálogo</a></p>
+    <p class="breadcrumb">
+        <a href="{% url 'catalogo' %}">Catálogo</a>
+        <span aria-hidden="true"> / </span>
+        {{ comic.titulo }}
+    </p>
+
     <article class="comic-detail">
-        <img src="{{ comic.portada.url }}" alt="Portada de {{ comic.titulo }}">
-        <div>
+        <div class="detail-cover">
+            <img src="{{ comic.portada.url }}" alt="Portada de {{ comic.titulo }}">
+        </div>
+        <div class="comic-info">
+            <p class="detail-publisher">{{ comic.editorial.nombre }}</p>
             <h1>{{ comic.titulo }}</h1>
-            <dl>
-                <dt>Editorial</dt>
-                <dd>{{ comic.editorial.nombre }}</dd>
-                <dt>Número de tomo</dt>
-                <dd>{{ comic.numero_tomo }}</dd>
-                <dt>Precio</dt>
-                <dd>{{ comic.precio|clp }} CLP</dd>
-                <dt>Tapa dura</dt>
-                <dd>{% if comic.tapa_dura %}Sí{% else %}No{% endif %}</dd>
-                <dt>Stock</dt>
-                <dd>{{ comic.stock }}</dd>
-                <dt>Disponible para la venta</dt>
-                <dd>{% if comic.disponible_venta %}Sí{% else %}No{% endif %}</dd>
-            </dl>
+
+            <div class="detail-badges" aria-label="Características del cómic">
+                <span class="badge badge-detail">
+                    <span class="sr-only">Número de tomo: </span>Tomo #{{ comic.numero_tomo }}
+                </span>
+                <span class="badge badge-detail">
+                    {% if comic.tapa_dura %}Tapa dura{% else %}Tapa blanda{% endif %}
+                </span>
+                <span class="badge badge-detail badge-stock">
+                    Stock: {{ comic.stock }}
+                    {% if comic.stock == 1 %}unidad{% else %}unidades{% endif %}
+                </span>
+            </div>
+
+            <p class="detail-price-label">Precio</p>
+            <p class="detail-price">{{ comic.precio|clp }} <span>CLP</span></p>
+
+            <div class="detail-actions">
+                <button class="button button-disabled" type="button" disabled aria-describedby="reservation-note">
+                    <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M6 7h12l1 13H5L6 7Z"></path>
+                        <path d="M9 9V6a3 3 0 0 1 6 0v3"></path>
+                    </svg>
+                    Reservar cómic
+                </button>
+                <a class="button button-secondary" href="{% url 'catalogo' %}">Volver al catálogo</a>
+            </div>
+            <p class="reservation-note" id="reservation-note">Las reservas en línea estarán disponibles próximamente.</p>
         </div>
     </article>
 {% endblock %}

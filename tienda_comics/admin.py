@@ -18,6 +18,7 @@ class ComicAdmin(admin.ModelAdmin):
         "stock",
         "tapa_dura",
         "disponible_venta",
+        "tiene_reservas",
     )
     list_filter = ("editorial", "tapa_dura")
     search_fields = ("titulo", "editorial__nombre")
@@ -25,6 +26,10 @@ class ComicAdmin(admin.ModelAdmin):
     @admin.display(description="Precio")
     def precio_formateado(self, obj):
         return f"${obj.precio:,.0f}".replace(",", ".")
+
+    @admin.display(boolean=True, description="En reserva")
+    def tiene_reservas(self, obj):
+        return obj.reservas.exists()
 
 
 @admin.register(Reserva)
