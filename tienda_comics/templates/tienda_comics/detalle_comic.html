@@ -25,26 +25,36 @@
                 <span class="badge badge-detail">
                     {% if comic.tapa_dura %}Tapa dura{% else %}Tapa blanda{% endif %}
                 </span>
-                <span class="badge badge-detail badge-stock">
-                    Stock: {{ comic.stock }}
-                    {% if comic.stock == 1 %}unidad{% else %}unidades{% endif %}
-                </span>
+                {% if comic.stock > 0 %}
+                    <span class="badge badge-detail badge-stock">
+                        Stock: {{ comic.stock }}
+                        {% if comic.stock == 1 %}unidad{% else %}unidades{% endif %}
+                    </span>
+                {% else %}
+                    <span class="badge badge-detail badge-soldout">Agotado</span>
+                {% endif %}
             </div>
 
             <p class="detail-price-label">Precio</p>
             <p class="detail-price">{{ comic.precio|clp }} <span>CLP</span></p>
 
             <div class="detail-actions">
-                <button class="button button-disabled" type="button" disabled aria-describedby="reservation-note">
-                    <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <path d="M6 7h12l1 13H5L6 7Z"></path>
-                        <path d="M9 9V6a3 3 0 0 1 6 0v3"></path>
-                    </svg>
-                    Reservar cómic
-                </button>
+                {% if comic.stock > 0 %}
+                    <a class="button button-secondary" href="{% url 'reserva_comic' id_comic=comic.id %}">
+                        Reservar cómic
+                    </a>
+                {% else %}
+                    <button class="button button-disabled" type="button" disabled>Sin stock disponible</button>
+                {% endif %}
                 <a class="button button-secondary" href="{% url 'catalogo' %}">Volver al catálogo</a>
             </div>
-            <p class="reservation-note" id="reservation-note">Las reservas en línea estarán disponibles próximamente.</p>
+            <p class="reservation-note" id="reservation-note">
+                {% if comic.stock > 0 %}
+                    Puedes reservar hasta 3 ejemplares por solicitud.
+                {% else %}
+                    Este cómic está agotado y no acepta reservas en este momento.
+                {% endif %}
+            </p>
         </div>
     </article>
 {% endblock %}

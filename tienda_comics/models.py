@@ -69,5 +69,9 @@ class Reserva(models.Model):
         verbose_name_plural = "reservas"
         ordering = ["-fecha_hora"]
 
+    @property
+    def total(self):
+        return self.comic.precio * self.cantidad
+
     def __str__(self):
         return f"Reserva {self.codigo} - {self.nombre} ({self.comic})"

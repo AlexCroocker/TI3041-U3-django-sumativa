@@ -1,0 +1,362 @@
+{% extends "tienda_comics/base.html" %}
+{% load catalogo_extras %}
+
+{% block title %}
+    {% if comprobante %}
+        Comprobante de reserva | Tienda de Cómics
+    {% else %}
+        Reservar {{ comic.titulo }} | Tienda de Cómics
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if comprobante %}
+        <p class="breadcrumb">
+            <a href="{% url 'catalogo' %}">Catálogo</a>
+            <span aria-hidden="true"> / </span>
+            Comprobante
+        </p>
+
+        <section class="receipt-card" aria-live="polite">
+            <div class="receipt-header">
+                <span class="badge badge-success">Reserva confirmada</span>
+                <h1>Comprobante de reserva</h1>
+            </div>
+
+            <div class="receipt-grid">
+                <div class="receipt-item">
+                    <span>Código</span>
+                    <strong>{{ reserva.codigo }}</strong>
+                </div>
+                <div class="receipt-item">
+                    <span>Cómic</span>
+                    <strong>{{ reserva.comic.titulo }}</strong>
+                </div>
+                <div class="receipt-item">
+                    <span>Nombre</span>
+                    <strong>{{ reserva.nombre }}</strong>
+                </div>
+                <div class="receipt-item">
+                    <span>RUT</span>
+                    <strong>{{ reserva.rut }}</strong>
+                </div>
+                <div class="receipt-item">
+                    <span>Cantidad</span>
+                    <strong>{{ reserva.cantidad }} ejemplar(es)</strong>
+                </div>
+                <div class="receipt-item">
+                    <span>Total</span>
+                    <strong>{{ reserva.total|clp }} CLP</strong>
+                </div>
+                <div class="receipt-item full-width">
+                    <span>Fecha y hora</span>
+                    <strong>{{ reserva.fecha_hora|date:"d/m/Y H:i" }}</strong>
+                </div>
+            </div>
+
+            <div class="receipt-actions">
+                <a class="button button-primary" href="{% url 'catalogo' %}">Volver al catálogo</a>
+                <a class="button button-secondary" href="{% url 'detalle_comic' reserva.comic.pk %}">Ver cómic</a>
+            </div>
+        </section>
+    {% else %}
+        <p class="breadcrumb">
+            <a href="{% url 'catalogo' %}">Catálogo</a>
+            <span aria-hidden="true"> / </span>
+            <a href="{% url 'detalle_comic' comic.pk %}">{{ comic.titulo }}</a>
+            <span aria-hidden="true"> / </span>
+            Reservar
+        </p>
+
+        {% if agotado %}
+            <section class="empty-state" aria-live="polite">
+                <h2>Este cómic está agotado</h2>
+                <p>No es posible hacer reservas de un ejemplar sin stock disponible.</p>
+                <a class="button button-secondary" href="{% url 'detalle_comic' comic.pk %}">Volver al detalle</a>
+            </section>
+        {% else %}
+            <article class="reservation-card">
+                <div class="reservation-cover">
+                    <img src="{{ comic.portada.url }}" alt="Portada de {{ comic.titulo }}">
+                </div>
+
+                <div class="reservation-panel">
+                    <p class="detail-publisher">{{ comic.editorial.nombre }}</p>
+                    <h1>Reservar {{ comic.titulo }}</h1>
+
+                    <div class="reservation-summary">
+                        <div>
+                            <span class="summary-label">Precio</span>
+                            <strong>{{ comic.precio|clp }} CLP</strong>
+                        </div>
+                        <div>
+                            <span class="summary-label">Stock disponible</span>
+                            <strong>{{ comic.stock }} unidades</strong>
+                        </div>
+                    </div>
+
+                    <form method="post" class="reservation-form" novalidate>
+                        {% csrf_token %}
+                        {{ form.id_comic }}
+
+                        {% if form.non_field_errors %}
+                            <div class="field-error non-field-error">{{ form.non_field_errors|join:", " }}</div>
+                        {% endif %}
+
+                        <div class="field-grid">
+                            {% for field in form %}
+                                {% if field.name != 'id_comic' %}
+                                    <div class="field-group">
+                                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                        {{ field }}
+                                        {% if field.errors %}
+                                            <div class="field-error">{{ field.errors|join:", " }}</div>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <div class="reservation-actions">
+                            <button type="submit" class="button button-primary">CONFIRMAR</button>
+                            <a class="button button-secondary" href="{% url 'detalle_comic' comic.pk %}">CANCELAR</a>
+                        </div>
+                    </form>
+                </div>
+            </article>
+        {% endif %}
+    {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .receipt-card {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 28px;
+        border: 1px solid #e2e8f0;
+        border-radius: 24px;
+        background: #fff;
+        box-shadow: 0 18px 35px rgba(15, 23, 42, 0.08);
+    }
+
+    .receipt-header {
+        margin-bottom: 24px;
+    }
+
+    .receipt-header h1 {
+        margin: 12px 0 0;
+        font-size: clamp(2rem, 3vw, 2.7rem);
+    }
+
+    .receipt-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .receipt-item {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 18px 16px;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        background: #f8fafc;
+    }
+
+    .receipt-item span {
+        color: #64748b;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .receipt-item strong {
+        color: #0f172a;
+        font-size: 1.04rem;
+        word-break: break-word;
+    }
+
+    .full-width {
+        grid-column: 1 / -1;
+    }
+
+    .receipt-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 26px;
+    }
+
+    .reservation-card {
+        display: grid;
+        grid-template-columns: minmax(220px, 380px) minmax(0, 1fr);
+        gap: 32px;
+        align-items: center;
+        width: min(100%, 1100px);
+        margin: 0 auto;
+        padding: 30px;
+        border: 1px solid #e2e8f0;
+        border-radius: 24px;
+        background: #fff;
+        box-shadow: 0 18px 35px rgba(15, 23, 42, 0.08);
+    }
+
+    .reservation-cover {
+        overflow: hidden;
+        width: 100%;
+        max-width: 360px;
+        aspect-ratio: 2 / 3;
+        border-radius: 18px;
+        background: #e2e8f0;
+        box-shadow: 0 18px 35px rgba(15, 23, 42, 0.12);
+    }
+
+    .reservation-cover img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .reservation-panel {
+        width: 100%;
+    }
+
+    .reservation-panel h1 {
+        margin: 0 0 18px;
+        font-size: clamp(2rem, 3vw, 2.8rem);
+        line-height: 1.1;
+    }
+
+    .reservation-summary {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin: 18px 0 24px;
+        padding: 16px 18px;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        background: #f8fafc;
+    }
+
+    .summary-label {
+        display: block;
+        margin-bottom: 6px;
+        color: #64748b;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .reservation-summary strong {
+        color: #0f172a;
+        font-size: 1.1rem;
+    }
+
+    .reservation-form {
+        width: 100%;
+    }
+
+    .field-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+    }
+
+    .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .field-group label {
+        color: #0f172a;
+        font-size: 0.85rem;
+        font-weight: 700;
+    }
+
+    .field-grid .field-group:last-child,
+    .field-grid .field-group:nth-last-child(2) {
+        grid-column: span 2;
+    }
+
+    input.form-control,
+    select.form-control {
+        width: 100%;
+        min-height: 48px;
+        padding: 0.85rem 1rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 12px;
+        background: #fff;
+        color: #0f172a;
+        font-size: 1rem;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    input.form-control:focus,
+    select.form-control:focus {
+        border-color: #dc2626;
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+        outline: none;
+    }
+
+    .field-error {
+        color: #b91c1c;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    .non-field-error {
+        margin-bottom: 16px;
+    }
+
+    .reservation-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 24px;
+    }
+
+    .badge-success {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border: 1px solid #bbf7d0;
+        border-radius: 999px;
+        color: #166534;
+        background: #f0fdf4;
+        font-weight: 700;
+    }
+
+    .badge-soldout {
+        color: #9f1239;
+        background: #fff1f2;
+        border-color: #fecdd3;
+    }
+
+    @media (max-width: 760px) {
+        .receipt-grid,
+        .field-grid,
+        .reservation-card {
+            grid-template-columns: 1fr;
+        }
+
+        .reservation-card {
+            padding: 22px 18px;
+        }
+
+        .reservation-cover {
+            max-width: 100%;
+        }
+
+        .field-grid .field-group:last-child,
+        .field-group:nth-last-child(2) {
+            grid-column: span 1;
+        }
+    }
+</style>
+{% endblock %}

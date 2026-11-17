@@ -121,6 +121,15 @@ class CatalogoPublicoTests(TestCase):
             stock=0,
             disponible_venta=False,
         )
+        self.comic_no_disponible_con_stock = Comic.objects.create(
+            titulo="Edición retirada",
+            editorial=self.editorial,
+            portada="portadas/retirada.jpg",
+            precio=4000,
+            numero_tomo=2,
+            stock=2,
+            disponible_venta=False,
+        )
 
     def test_inicio_lista_solo_disponibles_y_formatea_precios_en_clp(self):
         response = self.client.get("/")
@@ -130,7 +139,9 @@ class CatalogoPublicoTests(TestCase):
         self.assertContains(response, "Editorial principal")
         self.assertContains(response, "$12.500")
         self.assertContains(response, "CLP")
-        self.assertNotContains(response, "Edición agotada")
+        self.assertContains(response, "Edición agotada")
+        self.assertContains(response, "Edición retirada")
+        self.assertContains(response, "Agotado")
         self.assertContains(response, 'aria-label="Menú principal"')
 
     def test_busqueda_y_editorial_se_pueden_combinar(self):
@@ -171,3 +182,113 @@ class CatalogoPublicoTests(TestCase):
 
         self.assertNotContains(response, "Aventura espacial")
         self.assertNotContains(response, "Aventura medieval")
+
+    def test_reserva_valida_descuenta_stock_y_muestra_comprobante(self):
+        comic = Comic.objects.create(
+            titulo="Reserva prueba",
+            editorial=self.editorial,
+            portada="portadas/reserva-prueba.jpg",
+            precio=7000,
+            numero_tomo=3,
+            stock=3,
+        )
+
+        response = self.client.post(
+            f"/reserva/{comic.pk}/",
+            {
+                "id_comic": comic.pk,
+                "nombre": "Carlos Rojas",
+                "email": "carlos@example.com",
+                "rut": "12.345.678-5",
+                "cantidad": 2,
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        comic.refresh_from_db()
+        self.assertEqual(comic.stock, 1)
+        self.assertEqual(Reserva.objects.filter(comic=comic).count(), 1)
+
+        reserva = Reserva.objects.get(comic=comic)
+        comprobante = self.client.get(f"/reserva/comprobante/{reserva.codigo}/")
+        self.assertEqual(comprobante.status_code, 200)
+        self.assertContains(comprobante, reserva.codigo)
+        self.assertContains(comprobante, "Carlos Rojas")
+        self.assertContains(comprobante, "$14.000")
+        self.assertEqual(Reserva.objects.filter(comic=comic).count(), 1)
+
+    def test_formulario_rechaza_rut_invalido_y_stock_insuficiente(self):
+        comic = Comic.objects.create(
+            titulo="Compra con error",
+            editorial=self.editorial,
+            portada="portadas/error.jpg",
+            precio=5000,
+            numero_tomo=4,
+            stock=2,
+        )
+
+        invalid_rut = self.client.post(
+            f"/reserva/{comic.pk}/",
+            {
+                "id_comic": comic.pk,
+                "nombre": "Ana Pérez",
+                "email": "ana@example.com",
+                "rut": "12.345.678-1",
+                "cantidad": 1,
+            },
+        )
+        self.assertContains(invalid_rut, "El RUT ingresado no es válido.")
+        self.assertEqual(Reserva.objects.filter(comic=comic).count(), 0)
+
+        stock_excedido = self.client.post(
+            f"/reserva/{comic.pk}/",
+            {
+                "id_comic": comic.pk,
+                "nombre": "Ana Pérez",
+                "email": "ana@example.com",
+                "rut": "12.345.678-5",
+                "cantidad": 3,
+            },
+        )
+        self.assertContains(stock_excedido, "Solo quedan 2 ejemplar(es) disponibles.")
+        self.assertEqual(Reserva.objects.filter(comic=comic).count(), 0)
+
+    def test_comic_sin_stock_se_muestra_como_agotado_y_no_permite_reserva(self):
+        comic = Comic.objects.create(
+            titulo="Sin stock",
+            editorial=self.editorial,
+            portada="portadas/agotado.jpg",
+            precio=4500,
+            numero_tomo=5,
+            stock=0,
+        )
+
+        response = self.client.get("/")
+        self.assertContains(response, "Agotado")
+
+        detail = self.client.get(f"/comics/{comic.pk}/")
+        self.assertContains(detail, "Agotado")
+
+        reserva = self.client.get(f"/reserva/{comic.pk}/")
+        self.assertContains(reserva, "Este cómic está agotado")
+        self.assertEqual(Reserva.objects.filter(comic=comic).count(), 0)
+
+    def test_historial_muestra_reservas_y_enlaces_de_navegacion(self):
+        reserva = Reserva.objects.create(
+            comic=self.comic,
+            nombre="María Soto",
+            correo="maria@example.com",
+            rut="12.345.678-5",
+            cantidad=2,
+        )
+
+        response = self.client.get("/reservas/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Historial de reservas")
+        self.assertContains(response, "María Soto")
+        self.assertContains(response, reserva.codigo)
+        self.assertContains(response, "$25.000")
+        self.assertContains(response, "Ver comprobante")
+        self.assertContains(response, "Volver al catálogo")
+        self.assertContains(response, 'href="/reservas/">Mis reservas</a>')

@@ -1,0 +1,193 @@
+{% extends "tienda_comics/base.html" %}
+{% load catalogo_extras %}
+
+{% block title %}Historial de reservas | Tienda de Cómics{% endblock %}
+
+{% block content %}
+    <p class="breadcrumb">
+        <a href="{% url 'catalogo' %}">Catálogo</a>
+        <span aria-hidden="true"> / </span>
+        Mis reservas
+    </p>
+
+    <section class="history-heading">
+        <p class="eyebrow">Tus pedidos</p>
+        <h1>Historial de reservas</h1>
+        <p>Aquí puedes revisar todas las reservas registradas.</p>
+    </section>
+
+    {% if reservas %}
+        <div class="history-list">
+            {% for reserva in reservas %}
+                <article class="history-card">
+                    <div class="history-card-heading">
+                        <div>
+                            <span class="history-label">Cómic</span>
+                            <h2>{{ reserva.comic.titulo }}</h2>
+                        </div>
+                        <span class="history-total">{{ reserva.total|clp }} CLP</span>
+                    </div>
+
+                    <dl class="history-details">
+                        <div>
+                            <dt>Código</dt>
+                            <dd>{{ reserva.codigo }}</dd>
+                        </div>
+                        <div>
+                            <dt>Nombre</dt>
+                            <dd>{{ reserva.nombre }}</dd>
+                        </div>
+                        <div>
+                            <dt>RUT</dt>
+                            <dd>{{ reserva.rut }}</dd>
+                        </div>
+                        <div>
+                            <dt>Correo</dt>
+                            <dd>{{ reserva.correo }}</dd>
+                        </div>
+                        <div>
+                            <dt>Cantidad</dt>
+                            <dd>{{ reserva.cantidad }} ejemplar(es)</dd>
+                        </div>
+                        <div>
+                            <dt>Fecha y hora</dt>
+                            <dd>{{ reserva.fecha_hora|date:"d/m/Y H:i" }}</dd>
+                        </div>
+                    </dl>
+
+                    <a class="history-receipt" href="{% url 'comprobante_reserva' codigo=reserva.codigo %}">
+                        Ver comprobante
+                    </a>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <section class="empty-state" aria-live="polite">
+            <h2>Aún no hay reservas</h2>
+            <p>Cuando completes una reserva, aparecerá aquí.</p>
+        </section>
+    {% endif %}
+
+    <div class="history-footer">
+        <a class="button button-secondary" href="{% url 'catalogo' %}">Volver al catálogo</a>
+    </div>
+{% endblock %}
+
+{% block extra_css %}
+    <style>
+        .history-heading {
+            margin-bottom: 28px;
+        }
+
+        .history-heading h1 {
+            margin: 0 0 8px;
+            font-size: clamp(2rem, 4vw, 2.8rem);
+        }
+
+        .history-heading > p:last-child {
+            margin: 0;
+            color: #64748b;
+        }
+
+        .history-list {
+            display: grid;
+            gap: 18px;
+        }
+
+        .history-card {
+            padding: 22px;
+            border: 1px solid #e2e8f0;
+            border-radius: 18px;
+            background: #fff;
+            box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+        }
+
+        .history-card-heading {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .history-label,
+        .history-details dt {
+            color: #64748b;
+            font-size: 0.75rem;
+            font-weight: 750;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .history-card h2 {
+            margin: 4px 0 0;
+            font-size: 1.25rem;
+        }
+
+        .history-total {
+            color: #166534;
+            font-size: 1.15rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .history-details {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+            margin: 18px 0;
+        }
+
+        .history-details div {
+            min-width: 0;
+        }
+
+        .history-details dt {
+            margin-bottom: 4px;
+        }
+
+        .history-details dd {
+            overflow-wrap: anywhere;
+            margin: 0;
+            color: #172033;
+            font-size: 0.92rem;
+        }
+
+        .history-receipt {
+            color: #1d4ed8;
+            font-size: 0.9rem;
+            font-weight: 750;
+            text-decoration: none;
+        }
+
+        .history-receipt:hover {
+            text-decoration: underline;
+        }
+
+        .history-footer {
+            margin-top: 24px;
+        }
+
+        @media (max-width: 700px) {
+            .history-details {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 460px) {
+            .history-card {
+                padding: 18px;
+            }
+
+            .history-card-heading {
+                flex-direction: column;
+            }
+
+            .history-details {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+        }
+    </style>
+{% endblock %}

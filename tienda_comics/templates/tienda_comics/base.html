@@ -425,6 +425,15 @@
             background: #dcfce7;
         }
 
+        .badge-soldout {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            color: #9f1239;
+            background: #fff1f2;
+            border-color: #fecdd3;
+        }
+
         .comic-card-body {
             display: flex;
             min-height: 202px;
@@ -851,13 +860,14 @@
             </a>
             <div class="nav-links">
                 <a class="nav-link nav-link-active" href="{% url 'catalogo' %}">Catálogo</a>
-                <span class="nav-coming-soon">Mis reservas <small>Pronto</small></span>
+                <a class="nav-link" href="{% url 'historial_reservas' %}">Mis reservas</a>
             </div>
         </nav>
     </header>
     <main class="page-shell">
         {% block content %}{% endblock %}
     </main>
+    {% block extra_css %}{% endblock %}
     <footer class="site-footer">Un buen cómic siempre abre otro universo.</footer>
 </body>
 </html>

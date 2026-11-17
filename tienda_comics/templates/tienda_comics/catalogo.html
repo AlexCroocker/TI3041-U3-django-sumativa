@@ -47,15 +47,19 @@
     {% if comics %}
         <div class="section-heading">
             <h2>Explora el catálogo</h2>
-            <p>Historias disponibles para ti</p>
+            <p>Cómics disponibles y agotados</p>
         </div>
-        <section class="comics-grid" aria-label="Cómics disponibles">
+        <section class="comics-grid" aria-label="Cómics del catálogo">
             {% for comic in comics %}
                 <article class="comic-card">
                     <div class="comic-cover">
                         <img src="{{ comic.portada.url }}" alt="Portada de {{ comic.titulo }}" loading="lazy">
                         <span class="badge badge-floating">{{ comic.editorial.nombre }}</span>
-                        <span class="badge badge-available">Disponible</span>
+                        {% if comic.disponible_venta and comic.stock > 0 %}
+                            <span class="badge badge-available">Disponible</span>
+                        {% else %}
+                            <span class="badge badge-soldout">Agotado</span>
+                        {% endif %}
                     </div>
                     <div class="comic-card-body">
                         <p class="comic-publisher">{{ comic.editorial.nombre }}</p>
@@ -64,13 +68,17 @@
                             <strong>{{ comic.precio|clp }}</strong>
                             <span>CLP</span>
                         </p>
-                        <a class="button card-action" href="{% url 'detalle_comic' comic.pk %}">
-                            Ver detalle
-                            <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                                <path d="M5 12h14"></path>
-                                <path d="m12 5 7 7-7 7"></path>
-                            </svg>
-                        </a>
+                        {% if comic.disponible_venta and comic.stock > 0 %}
+                            <a class="button card-action" href="{% url 'detalle_comic' comic.pk %}">
+                                Ver detalle
+                                <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <path d="M5 12h14"></path>
+                                    <path d="m12 5 7 7-7 7"></path>
+                                </svg>
+                            </a>
+                        {% else %}
+                            <button class="button button-disabled" type="button" disabled>Agotado</button>
+                        {% endif %}
                     </div>
                 </article>
             {% endfor %}

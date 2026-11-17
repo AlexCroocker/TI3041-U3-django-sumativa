@@ -22,3 +22,14 @@ Catálogo público:
   Los cómics inexistentes o no disponibles responden con error 404.
 - Las páginas comparten una plantilla base con menú y los precios se presentan
   en pesos chilenos (CLP).
+
+Reserva pública y formulario
+
+-La página de formulario en el botón de "Reservar cómic"
+-Las validaciones de cada dato a rellenar
+-Se puede reservar hasta 3 ejemplares
+-El formulario listo sin tener que iniciar sesión
+-el comprobante listo para ver los datos de la persona de quien la reserva
+-el historial de reservas se ve visualmente
+-cada vez que se haga reserva se descuenta el stock
+-El catologo se muestran los comics Disponibles y Agotados
